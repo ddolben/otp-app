@@ -107,6 +107,12 @@ class App extends React.Component {
   handleSubmitEmail(email) {
     fetch(process.env.REACT_APP_API_URL + "/otp/send_email", {
       method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        'email': email,
+      }),
     }).then(response => response.json())
       .then(response => {
         console.log(response)
