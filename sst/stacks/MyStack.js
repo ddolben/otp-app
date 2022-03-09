@@ -29,6 +29,7 @@ export default class MyStack extends sst.Stack {
     });
 
     api.attachPermissions([table]);
+    api.attachPermissions(['ses:SendEmail', 'SES:SendRawEmail']);
 
     // Create the frontend app
     const site = new sst.ReactStaticSite(this, "ReactSite", {

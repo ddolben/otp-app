@@ -1,7 +1,9 @@
 import AWS from "aws-sdk";
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { hotp } from "otplib";
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
+const g_email_source = "driver13+aws@gmail.com";
 
 export async function send_email(event) {
   const data = JSON.parse(event.body);
@@ -47,7 +49,32 @@ export async function send_email(event) {
   try {
     await dynamoDb.put(write_params).promise();
 
-    // TODO: send email
+    // Send the OTP via email.
+    const email_body = "Your one-time password: " + otp_token;
+    const region = "us-east-1";  // TODO: get this from configuration
+    const sesClient = new SESClient({ region: region });
+    const email_params = {
+      Destination: {
+        ToAddresses: [
+          email,
+        ],
+      },
+      Message: {
+        Body: {
+          Text: {
+            Charset: "UTF-8",
+            Data: email_body,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "One-Time Password",
+        },
+      },
+      Source: g_email_source,
+    };
+
+    await sesClient.send(new SendEmailCommand(email_params));
 
     return {
       statusCode: 200,

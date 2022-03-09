@@ -15,6 +15,7 @@
     ]
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.53.0",
     "@serverless-stack/cli": "0.67.2",
     "@serverless-stack/resources": "0.67.2",
     "aws-cdk-lib": "2.7.0",
