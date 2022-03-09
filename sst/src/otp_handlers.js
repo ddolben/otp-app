@@ -1,6 +1,7 @@
 import AWS from "aws-sdk";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { hotp } from "otplib";
+import * as crypto from 'crypto';
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const g_email_source = "driver13+aws@gmail.com";
@@ -27,9 +28,10 @@ export async function send_email(event) {
     otp_counter = get_result.Item.otp_counter;
   }
 
-  // If we don't have a secret, generate one based on the username and a random value.
+  // If we don't have a secret, generate one.
   if (otp_secret === null) {
-    otp_secret = "ABCDE"
+    const buf = crypto.randomBytes(20)
+    otp_secret = buf.toString('hex');
   }
 
   // Generate an OTP based on the secret and the next counter value.
