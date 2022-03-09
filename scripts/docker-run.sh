@@ -10,8 +10,8 @@ cd "${script_dir}/.."
 # the node_modules directories
 docker run --rm -it \
   -v ${PWD}:/code \
-  -v /code/react-app/node_modules \
   -v /code/sst/node_modules \
+  -v /code/sst/frontend/node_modules \
   -v ${PWD}/aws-credentials.txt:/root/.aws/credentials \
   -v ${PWD}/aws-config.txt:/root/.aws/config \
   -p 13557:13557 \
