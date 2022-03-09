@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-class EmailForm extends React.Component {
+class SingleInputForm extends React.Component {
   constructor(props) {
     super(props);
 
@@ -19,7 +19,6 @@ class EmailForm extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    console.log("Email: " + this.state.value);
     if (this.onSubmit) {
       this.onSubmit(this.state.value);
     }
@@ -27,51 +26,12 @@ class EmailForm extends React.Component {
 
   render() {
     return (
-      <div>
-        <h1>Enter email address</h1>
-        <form onSubmit={this.handleSubmit}>
-          <input type="text" name="email" placeholder="Email Address"
-           onChange={this.handleChange} />
-          <button type="submit">Submit</button>
-        </form>
-      </div>
-    );
-  }
-};
-
-class OTPForm extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {value: ''};
-
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.onSubmit = this.props.onSubmit;
-  }
-
-  handleChange(e) {
-    this.setState({value: e.target.value});
-  }
-
-  handleSubmit(e) {
-    e.preventDefault();
-    console.log("OTP: " + this.state.value);
-    if (this.onSubmit) {
-      this.onSubmit(this.state.value);
-    }
-  }
-
-  render() {
-    return (
-      <div>
-        <h1>Enter one-time password</h1>
-        <form onSubmit={this.handleSubmit}>
-          <input type="text" name="otp" placeholder="One Time Password"
-           onChange={this.handleChange} />
-          <button type="submit">Submit</button>
-        </form>
-      </div>
+      <form onSubmit={this.handleSubmit}>
+        <span>{this.props.prompt}: </span>
+        <input type="text" placeholder={this.props.placeholder}
+          onChange={this.handleChange} />
+        <button type="submit">Submit</button>
+      </form>
     );
   }
 };
@@ -91,7 +51,7 @@ class HomePage extends React.Component {
   }
 };
 
-class App extends React.Component {
+class LoginForm extends React.Component {
   constructor(props) {
     super(props);
 
@@ -102,9 +62,15 @@ class App extends React.Component {
 
     this.handleSubmitEmail = this.handleSubmitEmail.bind(this);
     this.handleSubmitOTP = this.handleSubmitOTP.bind(this);
+    this.onLogin = this.props.onLogin;
   }
 
   handleSubmitEmail(email) {
+    if (this.props.dryRun) {
+      this.setState({email: email});
+      return;
+    }
+
     fetch(process.env.REACT_APP_API_URL + "/otp/send_email", {
       method: "POST",
       headers: {
@@ -115,7 +81,6 @@ class App extends React.Component {
       }),
     }).then(response => response.json())
       .then(response => {
-        console.log(response)
         if (response.success) {
           this.setState({email: email});
         }
@@ -123,6 +88,12 @@ class App extends React.Component {
   }
 
   handleSubmitOTP(otp) {
+    if (this.props.dryRun) {
+      this.setState({otp: otp});
+      this.onLogin(this.state.email);
+      return;
+    }
+
     fetch(process.env.REACT_APP_API_URL + "/otp/validate_otp", {
       method: "POST",
       headers: {
@@ -134,29 +105,70 @@ class App extends React.Component {
       }),
     }).then(response => response.json())
       .then(response => {
-        console.log(response)
         if (response.is_valid) {
           this.setState({otp: otp});
+          this.onLogin(this.state.email);
         }
       });
   }
 
   render() {
-    let form = <HomePage />;
+    let emailForm = null;
+    let otpForm = null;
     if (this.state.email === null) {
-      form = <EmailForm onSubmit={this.handleSubmitEmail} />;
-    } else if (this.state.otp === null) {
-      form = <OTPForm onSubmit={this.handleSubmitOTP} />;
+      emailForm = (
+        <SingleInputForm
+          prompt="Enter email address"
+          placeholder="email"
+          onSubmit={this.handleSubmitEmail} />
+      );
+    } else {
+      emailForm = <span>{this.state.email}</span>
+      otpForm = (
+        <SingleInputForm
+          prompt="Enter one-time password"
+          placeholder="one-time password"
+          onSubmit={this.handleSubmitOTP} />
+      );
     }
 
     return (
       <div>
+        <h1>Log in</h1>
         <div>
-          <div>Email: {this.state.email}</div>
-          <div>OTP: {this.state.otp}</div>
+          {emailForm}
         </div>
-        <hr />
-        {form}
+        <div>
+          {otpForm}
+        </div>
+      </div>
+    );
+  }
+};
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      user: null,
+    };
+
+    this.handleLoggedIn = this.handleLoggedIn.bind(this);
+  }
+
+  handleLoggedIn(user) {
+    this.setState({user: user});
+  }
+
+  render() {
+    let container = <HomePage />;
+    if (this.state.user === null) {
+      container = <LoginForm onLogin={this.handleLoggedIn} dryRun={true} />;
+    }
+
+    return (
+      <div>
+        {container}
         <hr />
         <div>
           <ToDoList />
@@ -166,18 +178,6 @@ class App extends React.Component {
   }
 };
 
-function Prototype(props) {
-  return (
-    <div>
-      <EmailForm />
-      <hr />
-      <OTPForm />
-      <hr />
-      <HomePage />
-    </div>
-  );
-}
-
 function ToDoList(props) {
   return (
     <ul>
@@ -185,7 +185,6 @@ function ToDoList(props) {
       <li>Freeze inputs while waiting for response</li>
       <li>Input format validation (e.g. emails)</li>
       <li>Failure dialogs</li>
-      <li>Consolidate input forms into one component</li>
       <li>CSS Styling</li>
     </ul>
   );
