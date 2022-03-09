@@ -105,11 +105,27 @@ class App extends React.Component {
   }
 
   handleSubmitEmail(email) {
-    this.setState({email: email});
+    fetch(process.env.REACT_APP_API_URL + "/otp/send_email", {
+      method: "POST",
+    }).then(response => response.json())
+      .then(response => {
+        console.log(response)
+        if (response.success) {
+          this.setState({email: email});
+        }
+      });
   }
 
   handleSubmitOTP(otp) {
-    this.setState({otp: otp});
+    fetch(process.env.REACT_APP_API_URL + "/otp/validate_otp", {
+      method: "POST",
+    }).then(response => response.json())
+      .then(response => {
+        console.log(response)
+        if (response.is_valid) {
+          this.setState({otp: otp});
+        }
+      });
   }
 
   render() {
@@ -153,6 +169,9 @@ function ToDoList(props) {
   return (
     <ul>
       <li>Login session</li>
+      <li>Freeze inputs while waiting for response</li>
+      <li>Input format validation (e.g. emails)</li>
+      <li>Failure dialogs</li>
       <li>Consolidate input forms into one component</li>
       <li>CSS Styling</li>
     </ul>
