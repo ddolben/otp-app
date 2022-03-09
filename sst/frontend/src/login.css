@@ -1,0 +1,19 @@
+.container {
+  width: 100%;
+}
+
+.flex-row {
+  display: flex;
+}
+
+.flex-fill {
+  flex-grow: 1000;
+}
+
+.centered {
+  text-align: center;
+}
+
+.login-container {
+  width: 400px;
+}

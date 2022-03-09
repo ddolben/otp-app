@@ -1,146 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { LoginForm } from './login.js';
 import './index.css';
-
-class SingleInputForm extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {value: ''};
-
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.onSubmit = this.props.onSubmit;
-  }
-
-  handleChange(e) {
-    this.setState({value: e.target.value});
-  }
-
-  handleSubmit(e) {
-    e.preventDefault();
-    if (this.onSubmit) {
-      this.onSubmit(this.state.value);
-    }
-  }
-
-  render() {
-    return (
-      <form onSubmit={this.handleSubmit}>
-        <span>{this.props.prompt}: </span>
-        <input type="text" placeholder={this.props.placeholder}
-          onChange={this.handleChange} />
-        <button type="submit">Submit</button>
-      </form>
-    );
-  }
-};
 
 class HomePage extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {user: "user"};
   }
 
   render() {
     return (
       <div>
-        Welcome, {this.state.user}!
-      </div>
-    );
-  }
-};
-
-class LoginForm extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      email: null,
-      otp: null,
-    };
-
-    this.handleSubmitEmail = this.handleSubmitEmail.bind(this);
-    this.handleSubmitOTP = this.handleSubmitOTP.bind(this);
-    this.onLogin = this.props.onLogin;
-  }
-
-  handleSubmitEmail(email) {
-    if (this.props.dryRun) {
-      this.setState({email: email});
-      return;
-    }
-
-    fetch(process.env.REACT_APP_API_URL + "/otp/send_email", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email,
-      }),
-    }).then(response => response.json())
-      .then(response => {
-        if (response.success) {
-          this.setState({email: email});
-        }
-      });
-  }
-
-  handleSubmitOTP(otp) {
-    if (this.props.dryRun) {
-      this.setState({otp: otp});
-      this.onLogin(this.state.email);
-      return;
-    }
-
-    fetch(process.env.REACT_APP_API_URL + "/otp/validate_otp", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: this.state.email,
-        token: otp,
-      }),
-    }).then(response => response.json())
-      .then(response => {
-        if (response.is_valid) {
-          this.setState({otp: otp});
-          this.onLogin(this.state.email);
-        }
-      });
-  }
-
-  render() {
-    let emailForm = null;
-    let otpForm = null;
-    if (this.state.email === null) {
-      emailForm = (
-        <SingleInputForm
-          prompt="Enter email address"
-          placeholder="email"
-          onSubmit={this.handleSubmitEmail} />
-      );
-    } else {
-      emailForm = <span>{this.state.email}</span>
-      otpForm = (
-        <SingleInputForm
-          prompt="Enter one-time password"
-          placeholder="one-time password"
-          onSubmit={this.handleSubmitOTP} />
-      );
-    }
-
-    return (
-      <div>
-        <h1>Log in</h1>
-        <div>
-          {emailForm}
-        </div>
-        <div>
-          {otpForm}
-        </div>
+        Welcome, {this.props.user}!
       </div>
     );
   }
@@ -161,9 +32,11 @@ class App extends React.Component {
   }
 
   render() {
-    let container = <HomePage />;
+    let container = null;
     if (this.state.user === null) {
       container = <LoginForm onLogin={this.handleLoggedIn} dryRun={true} />;
+    } else {
+      container = <HomePage user={this.state.user} />;
     }
 
     return (
@@ -196,4 +69,3 @@ ReactDOM.render(
   <App />,
   document.getElementById('root')
 );
-
