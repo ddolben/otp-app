@@ -111,7 +111,7 @@ class App extends React.Component {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        'email': email,
+        email: email,
       }),
     }).then(response => response.json())
       .then(response => {
@@ -125,6 +125,13 @@ class App extends React.Component {
   handleSubmitOTP(otp) {
     fetch(process.env.REACT_APP_API_URL + "/otp/validate_otp", {
       method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: this.state.email,
+        token: otp,
+      }),
     }).then(response => response.json())
       .then(response => {
         console.log(response)
@@ -174,6 +181,7 @@ function Prototype(props) {
 function ToDoList(props) {
   return (
     <ul>
+      <li>Secure Secret generation</li>
       <li>Login session</li>
       <li>Freeze inputs while waiting for response</li>
       <li>Input format validation (e.g. emails)</li>

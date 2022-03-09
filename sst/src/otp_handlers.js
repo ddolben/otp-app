@@ -1,4 +1,5 @@
 import AWS from "aws-sdk";
+import { hotp } from "otplib";
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
@@ -31,7 +32,7 @@ export async function send_email(event) {
 
   // Generate an OTP based on the secret and the next counter value.
   otp_counter++;
-  //const otp = 12345;
+  const otp_token = hotp.generate(otp_secret, otp_counter);
 
   // Write the counter and secret to dynamoDB.
   const write_params = {
@@ -53,6 +54,7 @@ export async function send_email(event) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         success: true,
+        token: otp_token,
       }),
     };
   } catch(e) {
@@ -67,12 +69,33 @@ export async function send_email(event) {
 }
 
 export async function validate_otp(event) {
-  /*const data =*/ JSON.parse(event.body);
+  // Grab the token from the request body.
+  const data = JSON.parse(event.body);
+  const email = data.email;
+  const otp_token = data.token;
+
+  // Grab the secret and counter from the database.
+  const get_params = {
+    TableName: process.env.tableName,
+    Key: {
+      user: email,
+    },
+  };
+  const get_result = await dynamoDb.get(get_params).promise();
+  if (!get_result.Item) {
+    throw new Error("failed to find user");
+  }
+  const otp_secret = get_result.Item.secret;
+  const otp_counter = get_result.Item.otp_counter;
+
+  // Validate the OTP.
+  const is_valid = hotp.check(otp_token, otp_secret, otp_counter);
+
   return {
     statusCode: 200,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      "is_valid": false,
+      "is_valid": is_valid,
     }),
   };
 }
