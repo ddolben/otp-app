@@ -10,8 +10,8 @@ class HomePage extends React.Component {
 
   render() {
     return (
-      <div>
-        Welcome, {this.props.user}!
+      <div class="centered">
+        <h1>Welcome, {this.props.user}!</h1>
       </div>
     );
   }
@@ -32,35 +32,16 @@ class App extends React.Component {
   }
 
   render() {
-    let container = null;
     if (this.state.user === null) {
-      container = <LoginForm onLogin={this.handleLoggedIn} dryRun={true} />;
-    } else {
-      container = <HomePage user={this.state.user} />;
+      return (
+        <LoginForm onLogin={this.handleLoggedIn} />
+      );
     }
-
     return (
-      <div>
-        {container}
-        <hr />
-        <div>
-          <ToDoList />
-        </div>
-      </div>
+      <HomePage user={this.state.user} />
     );
   }
 };
-
-function ToDoList(props) {
-  return (
-    <ul>
-      <li>Login session</li>
-      <li>Input format validation (e.g. emails)</li>
-      <li>Failure dialogs</li>
-      <li>CSS Styling</li>
-    </ul>
-  );
-}
 
 // ========================================
 
