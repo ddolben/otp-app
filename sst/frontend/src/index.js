@@ -55,7 +55,6 @@ function ToDoList(props) {
   return (
     <ul>
       <li>Login session</li>
-      <li>Freeze inputs while waiting for response</li>
       <li>Input format validation (e.g. emails)</li>
       <li>Failure dialogs</li>
       <li>CSS Styling</li>

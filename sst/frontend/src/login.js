@@ -5,7 +5,10 @@ class SingleInputForm extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {value: ''};
+    this.state = {
+      value: '',
+      disabled: false,
+    };
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -18,6 +21,7 @@ class SingleInputForm extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault();
+    this.setState({disabled: true});
     if (this.onSubmit) {
       this.onSubmit(this.state.value);
     }
@@ -28,9 +32,10 @@ class SingleInputForm extends React.Component {
       <form onSubmit={this.handleSubmit}>
         <div class="flex-row">
           <input type="text" class="flex-fill"
+            disabled={this.state.disabled}
             placeholder={this.props.placeholder}
             onChange={this.handleChange} />
-          <button type="submit">Submit</button>
+          <button type="submit" disabled={this.state.disabled}>Submit</button>
         </div>
       </form>
     );
@@ -53,7 +58,9 @@ class LoginForm extends React.Component {
 
   handleSubmitEmail(email) {
     if (this.props.dryRun) {
-      this.setState({email: email});
+      setTimeout(() => {
+        this.setState({email: email});
+      }, 2000);
       return;
     }
 
@@ -75,8 +82,10 @@ class LoginForm extends React.Component {
 
   handleSubmitOTP(otp) {
     if (this.props.dryRun) {
-      this.setState({otp: otp});
-      this.onLogin(this.state.email);
+      setTimeout(() => {
+        this.setState({otp: otp});
+        this.onLogin(this.state.email);
+      }, 2000);
       return;
     }
 
