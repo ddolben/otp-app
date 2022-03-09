@@ -13,9 +13,17 @@ export default class MyStack extends sst.Stack {
       },
     });
 
-    // Show the endpoint in the output
+    // Create the frontend app
+    const site = new sst.ReactStaticSite(this, "ReactSite", {
+      path: "frontend",
+      environment: {
+        REACT_APP_API_URL: api.url,
+      },
+    });
+
     this.addOutputs({
       "ApiEndpoint": api.url,
+      "SiteUrl": site.url,
     });
   }
 }
