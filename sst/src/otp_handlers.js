@@ -81,7 +81,6 @@ export async function send_email(event) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         success: true,
-        token: otp_token,
       }),
     };
   } catch(e) {
