@@ -17,3 +17,7 @@
 .login-container {
   width: 400px;
 }
+
+.flash {
+  color: red;
+}

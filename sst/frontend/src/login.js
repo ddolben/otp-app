@@ -7,7 +7,6 @@ class SingleInputForm extends React.Component {
 
     this.state = {
       value: '',
-      disabled: false,
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -21,7 +20,6 @@ class SingleInputForm extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    this.setState({disabled: true});
     if (this.onSubmit) {
       this.onSubmit(this.state.value);
     }
@@ -32,10 +30,10 @@ class SingleInputForm extends React.Component {
       <form onSubmit={this.handleSubmit}>
         <div class="flex-row">
           <input type="text" class="flex-fill"
-            disabled={this.state.disabled}
+            disabled={this.props.disabled}
             placeholder={this.props.placeholder}
             onChange={this.handleChange} />
-          <button type="submit" disabled={this.state.disabled}>Submit</button>
+          <button type="submit" disabled={this.props.disabled}>Submit</button>
         </div>
       </form>
     );
@@ -49,6 +47,8 @@ class LoginForm extends React.Component {
     this.state = {
       email: null,
       otp: null,
+      flash: null,
+      freezeInput: false,
     };
 
     this.handleSubmitEmail = this.handleSubmitEmail.bind(this);
@@ -57,12 +57,7 @@ class LoginForm extends React.Component {
   }
 
   handleSubmitEmail(email) {
-    if (this.props.dryRun) {
-      setTimeout(() => {
-        this.setState({email: email});
-      }, 2000);
-      return;
-    }
+    this.setState({freezeInput: true});
 
     fetch(process.env.REACT_APP_API_URL + "/otp/send_email", {
       method: "POST",
@@ -75,19 +70,21 @@ class LoginForm extends React.Component {
     }).then(response => response.json())
       .then(response => {
         if (response.success) {
-          this.setState({email: email});
+          this.setState({
+            email: email,
+            freezeInput: false,
+          });
+        } else {
+          this.setState({
+            flash: "Failed to send email",
+            freezeInput: false,
+          });
         }
       });
   }
 
   handleSubmitOTP(otp) {
-    if (this.props.dryRun) {
-      setTimeout(() => {
-        this.setState({otp: otp});
-        this.onLogin(this.state.email);
-      }, 2000);
-      return;
-    }
+    this.setState({freezeInput: true});
 
     fetch(process.env.REACT_APP_API_URL + "/otp/validate_otp", {
       method: "POST",
@@ -101,8 +98,16 @@ class LoginForm extends React.Component {
     }).then(response => response.json())
       .then(response => {
         if (response.is_valid) {
-          this.setState({otp: otp});
+          this.setState({
+            otp: otp,
+            freezeInput: false,
+          });
           this.onLogin(this.state.email);
+        } else {
+          this.setState({
+            flash: "Incorrect OTP",
+            freezeInput: false,
+          })
         }
       });
   }
@@ -112,9 +117,11 @@ class LoginForm extends React.Component {
     if (this.state.email === null) {
       form = (
         <div>
+          <div class="flash">{this.state.flash}</div>
           <div>Enter email address: </div>
           <SingleInputForm
             placeholder="email"
+            disabled={this.state.freezeInput}
             onSubmit={this.handleSubmitEmail} />
         </div>
       );
@@ -123,9 +130,11 @@ class LoginForm extends React.Component {
         <div>
           <div>An email was sent to {this.state.email} with a one-time password.</div>
           <br />
+          <div class="flash">{this.state.flash}</div>
           <div>Enter one-time password: </div>
           <SingleInputForm
             placeholder="one-time password"
+            disabled={this.state.freezeInput}
             onSubmit={this.handleSubmitOTP} />
         </div>
       );
